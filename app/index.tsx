@@ -1,16 +1,20 @@
-import { View, StyleSheet, Button } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
-import { useState } from "react";
+import React, { useState } from "react";
+import { View, StyleSheet, Button, FlatList, ListRenderItem } from "react-native";
 import GoalItem from "../components/GoalItem";
 import GoalInput from "@/components/GoalInput";
 
+type Goal = {
+  text: string;
+  key: string;
+};
+
 export default function Index() {
-  const [courseGoals, setCourseGoals] = useState([]);
+  const [courseGoals, setCourseGoals] = useState<Goal[]>([]);
   const [modalIsVisible, setModalIsVisible] = useState(false);
 
-  function addGoalHandler(enteredGoalText) {
-    setCourseGoals([
-      ...courseGoals,
+  function addGoalHandler(enteredGoalText: string) {
+    setCourseGoals((currentCourseGoals) => [
+      ...currentCourseGoals,
       { text: enteredGoalText, key: Math.random().toString() },
     ]);
     endAddGoalHandler();
@@ -24,11 +28,19 @@ export default function Index() {
     setModalIsVisible(false);
   }
 
-  function deleteGoalHander(id) {
-    setCourseGoals((currentCourseGoals) => {
-      return currentCourseGoals.filter((goal) => goal.key !== id);
-    });
+  function deleteGoalHandler(id: string) {
+    setCourseGoals((currentCourseGoals) =>
+      currentCourseGoals.filter((goal) => goal.key !== id)
+    );
   }
+
+  const renderItem: ListRenderItem<Goal> = ({ item }) => (
+    <GoalItem
+      text={item.text}
+      id={item.key}
+      onDeleteItem={deleteGoalHandler}
+    />
+  );
 
   return (
     <>
@@ -46,13 +58,8 @@ export default function Index() {
         <View style={styles.goalsContainer}>
           <FlatList
             data={courseGoals}
-            renderItem={(itemData) => (
-              <GoalItem
-                text={itemData.item.text}
-                id={itemData.item.key}
-                onDeleteItem={deleteGoalHandler}
-              />
-            )}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.key}
           />
         </View>
       </View>
