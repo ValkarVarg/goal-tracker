@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Button, FlatList, ListRenderItem } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Button, FlatList } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import GoalItem from "../components/GoalItem";
 import GoalInput from "@/components/GoalInput";
 
@@ -11,6 +12,33 @@ type Goal = {
 export default function Index() {
   const [courseGoals, setCourseGoals] = useState<Goal[]>([]);
   const [modalIsVisible, setModalIsVisible] = useState(false);
+
+  useEffect(() => {
+    const loadGoals = async () => {
+      try {
+        const storedGoals = await AsyncStorage.getItem('courseGoals');
+        if (storedGoals) {
+          setCourseGoals(JSON.parse(storedGoals));
+        }
+      } catch (error) {
+        console.error('Failed to load goals:', error);
+      }
+    };
+
+    loadGoals();
+  }, []);
+
+  useEffect(() => {
+    const saveGoals = async () => {
+      try {
+        await AsyncStorage.setItem('courseGoals', JSON.stringify(courseGoals));
+      } catch (error) {
+        console.error('Failed to save goals:', error);
+      }
+    };
+
+    saveGoals();
+  }, [courseGoals]);
 
   function addGoalHandler(enteredGoalText: string) {
     setCourseGoals((currentCourseGoals) => [
@@ -34,7 +62,7 @@ export default function Index() {
     );
   }
 
-  const renderItem: ListRenderItem<Goal> = ({ item }) => (
+  const renderItem = ({ item }: { item: Goal }) => (
     <GoalItem
       text={item.text}
       id={item.key}
